@@ -1,6 +1,6 @@
 sswan/
 ├── backend/                  # Go Backend Code
-│   ├── cmd/
+│   ├── cmd/                  # Main application entry point directory
 │   │   └── server/           # Main application entry point directory
 │   │       └── main.go       # Main function, HTTP server setup
 │   ├── internal/             # Private application code (optional but good practice)
@@ -16,20 +16,20 @@ sswan/
 │
 ├── frontend/                 # React Frontend Code (e.g., created with Create React App or Vite)
 │   ├── public/               # Static assets (index.html, favicon, etc.)
-│   │   └── index.html
+│   │   └── index.html        # Entry HTML file for the frontend
 │   ├── src/                  # React source code
 │   │   ├── components/       # Reusable UI components (e.g., VideoPlayer, Controls)
-│   │   │   └── VideoPlayer.js
+│   │   │   ├── VideoPlayer.js
 │   │   │   └── Controls.js
 │   │   ├── hooks/            # Custom React hooks (e.g., for WebSocket, WebRTC logic)
-│   │   │   └── useWebSocket.js
+│   │   │   ├── useWebSocket.js
 │   │   │   └── useWebRTC.js  # Encapsulates WebRTC setup/signaling
 │   │   ├── services/         # Interacting with backend/APIs (WebSocket connection setup)
 │   │   │   └── websocketService.js
 │   │   ├── contexts/         # (Optional) React Context for global state if needed
 │   │   │   └── AppContext.js
 │   │   ├── pages/            # (Optional) Top-level page components (if using routing)
-│   │   │   └── ShareScreenPage.js
+│   │   │   ├── ShareScreenPage.js
 │   │   │   └── WatchScreenPage.js
 │   │   ├── App.js            # Main application component
 │   │   ├── index.js          # React entry point
@@ -41,4 +41,3 @@ sswan/
 │
 ├── .gitignore                # Git ignore rules for both backend and frontend
 └── README.md                 # Project overview, setup instructions, etc.
-
