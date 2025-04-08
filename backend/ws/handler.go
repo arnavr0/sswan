@@ -34,7 +34,7 @@ func (h *WsHandler) ServeWS(w http.ResponseWriter, r *http.Request) {
 	// properly for production deployments with HTTPS/WSS.
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		InsecureSkipVerify: true,
-		// OriginPatterns: []string{"localhost:3000", "yourdomain.com"}, // Production
+		// OriginPatterns: []string{"localhost:4000", "yourdomain.com"}, // Production
 	})
 	if err != nil {
 		h.logger.PrintError(err, map[string]string{
