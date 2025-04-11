@@ -9,6 +9,11 @@ function App() {
   const [connectionStatus, setConnectionStatus] = useState("Connecting...");
   const [messageToSend, setMessageToSend] = useState("");
 
+  const clientId = useRef(
+    `client_${Math.random().toString(36).substring(2, 9)}`
+  );
+  const [receivedMessages, setReceivedMessages] = useState([]);
+
   // To hold Websocket instance
   const ws = useRef(null);
 
@@ -37,7 +42,27 @@ function App() {
 
     // Called when a message is received from the server
     ws.current.onmessage = (event) => {
-      console.log("Websocket Message received:", event.data);
+      console.log("Raw websocket Message received:", event.data);
+      try {
+        const message = JSON.parse(event.data);
+        console.log("Parsed WS message: ", message);
+
+        // Ignore message sent by self
+        if (message.sender === clientId.current) {
+          console.log("Ignoring self-sent message");
+          return;
+        }
+      } catch (error) {
+        console.error(
+          "Failed to parse WS message or invalid JSON:",
+          event.data,
+          error
+        );
+        setReceivedMessages((prev) => [
+          ...prev,
+          { type: "error", payload: `Parse Error: ${event.data}` },
+        ]);
+      }
     };
 
     ws.current.onerror = (error) => {
@@ -71,32 +96,38 @@ function App() {
   }, []); // Should only run once on mount/unmount
 
   // Function to send message
-  const handleSendMessage = () => {
+  const sendMessage = (messageObject) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      if (!messageToSend) {
-        console.log("Cannot send empty message.");
-        return; // Don't send empty messages
-      }
       try {
-        const basicMessage = {
-          type: "echo", // Example type
-          payload: messageToSend,
-          sender: "react-client-temp-id", // Example sender
+        // Ensure sender ID is always included
+        const messageToSendWithSender = {
+          ...messageObject,
+          sender: clientId.current, // Add our client ID
         };
-        const messageString = JSON.stringify(basicMessage);
-
-        ws.current.send(messageString); // Send the message
-        console.log("Message Sent:", messageString);
-        // Optional: Clear the input field after sending
-        // setMessageToSend('');
+        const messageString = JSON.stringify(messageToSendWithSender);
+        ws.current.send(messageString);
+        console.log("Message Sent:", messageToSendWithSender); // Log the object
       } catch (error) {
-        console.error("Failed to send message:", error);
+        console.error("Failed to stringify or send message:", error);
       }
     } else {
       console.error("WebSocket is not connected. Cannot send message.");
       setConnectionStatus("Disconnected (Cannot Send)");
       setIsConnected(false);
     }
+  };
+  const handleSendButtonClick = () => {
+    if (!messageToSend) {
+      console.log("Cannot send empty message.");
+      return;
+    }
+    // Send a structured message object
+    sendMessage({
+      type: "message", // Example type for simple chat-like messages
+      payload: messageToSend,
+      // Target and Room are omitted for simple broadcast
+    });
+    setMessageToSend(""); // Clear input after sending
   };
 
   return (
@@ -119,12 +150,37 @@ function App() {
           style={{ marginRight: "10px", padding: "5px" }}
         />
         <button
-          onClick={handleSendMessage}
+          onClick={handleSendButtonClick}
           disabled={!isConnected} // Disable button if not connected
           style={{ padding: "5px 10px" }}
         >
           Send Message
         </button>
+      </div>
+      <div
+        style={{
+          marginTop: "20px",
+          border: "1px solid #ccc",
+          padding: "10px",
+          height: "200px",
+          overflowY: "scroll",
+        }}
+      >
+        <h3>Received Messages:</h3>
+        {receivedMessages.length === 0 && <p>No messages received yet.</p>}
+        <ul>
+          {receivedMessages.map((msg, index) => (
+            <li key={index}>
+              <strong>Type:</strong> {msg.type},<strong>Sender:</strong>{" "}
+              {msg.sender ? msg.sender.substring(0, 8) : "N/A"}...,{" "}
+              {/* Show partial sender */}
+              <strong>Payload:</strong>{" "}
+              {typeof msg.payload === "object"
+                ? JSON.stringify(msg.payload)
+                : msg.payload}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

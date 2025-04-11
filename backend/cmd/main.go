@@ -20,6 +20,7 @@ type config struct {
 type application struct {
 	config config
 	logger *jsonlog.Logger
+	wsHub  *ws.Hub
 }
 
 func main() {
@@ -30,13 +31,15 @@ func main() {
 	flag.Parse()
 
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
+	hub := ws.NewHub(logger)
 
 	app := &application{
 		config: cfg,
 		logger: logger,
+		wsHub:  hub,
 	}
 
-	wsHandler := ws.NewWsHandler(app.logger)
+	wsHandler := ws.NewWsHandler(app.logger, app.wsHub)
 
 	http.HandleFunc("/ws", wsHandler.ServeWS)
 	// Simple root handler
